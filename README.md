@@ -1,5 +1,7 @@
 # go_http_server
 
+This whole repo is a part of a project-course on [Boot.dev](https://www.boot.dev/lessons/50f37da8-72c0-4860-a7d1-17e4bda5c243)
+The idea is to build a HTTP Server in Go without frameworks, to really get into how they work and so forth.
 
 Goals of This Course
 
