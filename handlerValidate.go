@@ -18,7 +18,7 @@ func handlerValidateChirp(w http.ResponseWriter, r *http.Request) {
 	params := parameters{}
 	err := decoder.Decode(&params)
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "error decoding paramets", err)
+		respondWithError(w, http.StatusInternalServerError, "error decoding parameters", err)
 		return
 	}
 
