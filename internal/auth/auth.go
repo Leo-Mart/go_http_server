@@ -2,6 +2,8 @@ package auth
 
 import (
 	"fmt"
+	"net/http"
+	"strings"
 	"time"
 
 	"github.com/alexedwards/argon2id"
@@ -25,6 +27,17 @@ func CheckPasswordHash(password, hash string) (bool, error) {
 	}
 
 	return match, nil
+}
+
+func GetBearerToken(headers http.Header) (string, error) {
+	tokenHeader := headers.Get("Authorization")
+	if tokenHeader == "" {
+		return "", fmt.Errorf("Missing or malformed header")
+	}
+	if len(tokenHeader) < 7 || !strings.EqualFold(tokenHeader[:7], "bearer ") {
+		return "", fmt.Errorf("No token in header")
+	}
+	return tokenHeader[7:], nil
 }
 
 func MakeJWT(userID uuid.UUID, tokenSecret string, expiresIn time.Duration) (string, error) {

@@ -16,6 +16,7 @@ type apiConfig struct {
 	fileserverHits atomic.Int32
 	db             database.Queries
 	platform       string
+	jwtSecret      string
 }
 
 func main() {
@@ -24,8 +25,18 @@ func main() {
 	const filePathRoot = "."
 	const port = "8080"
 	dbUrl := os.Getenv("DB_URL")
+	if dbUrl == "" {
+		log.Fatal("DB_URL must be set")
+	}
 	platform := os.Getenv("PLATFORM")
-	mux := http.NewServeMux()
+	if platform == "" {
+		log.Fatal("PLATFORM must be set")
+	}
+	jwtSecret := os.Getenv("JWT_SECRET")
+	if jwtSecret == "" {
+		log.Fatal("JWT_SECRET env variable is not set.")
+	}
+
 	db, err := sql.Open("postgres", dbUrl)
 	if err != nil {
 		log.Fatalf("error opening database: %v", err)
@@ -37,8 +48,10 @@ func main() {
 		fileserverHits: atomic.Int32{},
 		db:             *dbQueries,
 		platform:       platform,
+		jwtSecret:      jwtSecret,
 	}
 
+	mux := http.NewServeMux()
 	mux.Handle("/app/", apiCfg.middlewareMetricsInc(http.StripPrefix("/app", http.FileServer(http.Dir(filePathRoot)))))
 	mux.HandleFunc("GET /api/healthz", handlerHealth)
 
