@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -131,4 +132,44 @@ func profanityFilter(chirpString string) string {
 	}
 	cleanedBody := strings.Join(words, " ")
 	return cleanedBody
+}
+
+func (cfg *apiConfig) handleDeleteChirp(w http.ResponseWriter, r *http.Request) {
+	chirpIdString := r.PathValue("chirpID")
+	chirpId, err := uuid.Parse(chirpIdString)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "invalid id", err)
+	}
+
+	token, err := auth.GetBearerToken(r.Header)
+	if err != nil {
+		respondWithError(w, http.StatusUnauthorized, "No token found", err)
+		return
+
+	}
+
+	userId, err := auth.ValidateJWT(token, cfg.jwtSecret)
+	if err != nil {
+		respondWithError(w, http.StatusUnauthorized, "Error validating JWT Token", err)
+		return
+	}
+
+	chirp, err := cfg.db.GetSingleChirp(r.Context(), chirpId)
+	if err != nil {
+		respondWithError(w, http.StatusNotFound, "Chirp ot found", err)
+		return
+	}
+
+	if chirp.UserID != userId {
+		respondWithError(w, http.StatusForbidden, "Not authorized", fmt.Errorf("Not authorized"))
+		return
+	}
+
+	err = cfg.db.DeleteChirpById(r.Context(), chirpId)
+	if err != nil {
+		respondWithError(w, http.StatusNotFound, "Error deleting Chirp", err)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }
