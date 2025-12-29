@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+
 	"net/http"
 	"time"
 
@@ -17,16 +18,17 @@ type User struct {
 	Email        string    `json:"email"`
 	Token        string    `json:"token"`
 	RefreshToken string    `json:"refresh_token"`
+	IsChirpyRed  bool      `json:"is_chirpy_red"`
 }
 
 func (cfg *apiConfig) handleCreateUser(w http.ResponseWriter, r *http.Request) {
-	type userParameters struct {
+	type parameters struct {
 		Email    string `json:"email"`
 		Password string `json:"password"`
 	}
 
 	decoder := json.NewDecoder(r.Body)
-	params := userParameters{}
+	params := parameters{}
 	err := decoder.Decode(&params)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "error decoding parameters", err)
@@ -48,14 +50,15 @@ func (cfg *apiConfig) handleCreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	respUser := User{
-		ID:        user.ID,
-		CreatedAt: user.CreatedAt,
-		UpdatedAt: user.UpdatedAt,
-		Email:     user.Email,
+	response := User{
+		ID:          user.ID,
+		CreatedAt:   user.CreatedAt,
+		UpdatedAt:   user.UpdatedAt,
+		Email:       user.Email,
+		IsChirpyRed: user.IsChirpyRed,
 	}
 
-	respondWithJSON(w, http.StatusCreated, respUser)
+	respondWithJSON(w, http.StatusCreated, response)
 }
 
 func (cfg *apiConfig) handleUpdateUser(w http.ResponseWriter, r *http.Request) {
@@ -102,10 +105,11 @@ func (cfg *apiConfig) handleUpdateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := User{
-		ID:        userId,
-		CreatedAt: user.CreatedAt,
-		UpdatedAt: user.UpdatedAt,
-		Email:     user.Email,
+		ID:          userId,
+		CreatedAt:   user.CreatedAt,
+		UpdatedAt:   user.UpdatedAt,
+		Email:       user.Email,
+		IsChirpyRed: user.IsChirpyRed,
 	}
 
 	respondWithJSON(w, http.StatusOK, response)
