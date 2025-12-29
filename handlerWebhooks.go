@@ -4,8 +4,10 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 
+	"github.com/Leo-Mart/go_http_server/internal/auth"
 	"github.com/google/uuid"
 )
 
@@ -17,9 +19,20 @@ func (cfg *apiConfig) handleUpgradeUser(w http.ResponseWriter, r *http.Request) 
 		} `json:"data"`
 	}
 
+	apiKey, err := auth.GetAPIKey(r.Header)
+	if err != nil {
+		respondWithError(w, http.StatusUnauthorized, "error fetching apikey", err)
+		return
+	}
+
+	if apiKey != cfg.apiKey {
+		respondWithError(w, http.StatusUnauthorized, "API Key does not match", fmt.Errorf("API Key does not match"))
+		return
+	}
+
 	decoder := json.NewDecoder(r.Body)
 	params := parameters{}
-	err := decoder.Decode(&params)
+	err = decoder.Decode(&params)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "error decoding parameters", err)
 		return

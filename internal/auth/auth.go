@@ -76,6 +76,18 @@ func ValidateJWT(tokenString, tokenSecret string) (uuid.UUID, error) {
 
 }
 
+func GetAPIKey(headers http.Header) (string, error) {
+	authHeader := headers.Get("Authorization")
+	if authHeader == "" {
+		return "", fmt.Errorf("Missing header")
+	}
+	splitAuth := strings.Split(authHeader, " ")
+	if len(splitAuth) < 2 || splitAuth[0] != "ApiKey" {
+		return "", fmt.Errorf("malformed header")
+	}
+	return splitAuth[1], nil
+}
+
 func MakeRefreshToken() string {
 	key := make([]byte, 32)
 	rand.Read(key)
